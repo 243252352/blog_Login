@@ -1,34 +1,36 @@
-// index.js or app.js
 const express = require("express");
 const mongoose = require("mongoose");
-const path = require("path");
+const cookieParser = require("cookie-parser");
+const { checkForAuthenticationCookie } = require("./middleware/authentication");
 const userRouter = require("./routes/user");
+const blogRouter = require("./routes/blog");
+
 const app = express();
 const PORT = 3000;
 
-// MongoDB connection
+// MongoDB
 mongoose.connect("mongodb://localhost:27017/blogy")
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.error("MongoDB connection error:", err));
 
-// View engine setup
-app.set("view engine", "ejs");
-app.set("views", path.resolve("./views"));
-
 // Middleware
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json()); // ✅ Accept JSON bodies
+app.use(cookieParser());
+app.use(checkForAuthenticationCookie("token"));
 
 // Routes
 app.use("/user", userRouter);
+app.use("/blog", blogRouter);
 
-// ✅ ADD THIS: Route for /home
+// Home route
 app.get("/home", (req, res) => {
-    res.render("home"); // Make sure views/home.ejs exists
+    return res.status(200).json({ message: "Welcome to Home", user: req.user || null });
 });
 
-// Root route (optional)
+// Default route
 app.get("/", (req, res) => {
-    res.redirect("/user/signin");
+    return res.status(200).json({ message: "API is live. Use /user/signup or /user/signin" });
 });
 
 app.listen(PORT, () => {

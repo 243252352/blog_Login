@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('./partials/head') %>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog Page</title>
+  </head>
+  <body>
+    <%- include('./partials/nav') %>
+
+    <div class="container mt-3">
+      <form action="/blog" method="post">
+        <div class="mb-3">
+          <label for="title" class="form-label">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            aria-describedby="title"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="Content" class="form-label">Content</label>
+          <textarea
+            class="form-control"
+            name="Content"
+            id="Content"
+          ></textarea>
+        </div>
+
+        <div class="mb-3">
+          <button class="btn-btn-primary">submit</button>
+        </div>
+
+
+      </form>
+    </div>
+
+    <%- include('./partials/script') %>
+  </body>
+</html>

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
+const { Schema, model } = require("mongoose");
+const { createTokenForUser } = require("../services/authentication");
 const { createHmac, randomBytes } = require("crypto");
 
 const userSchema = new Schema({
@@ -10,7 +10,7 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true, // ensures no duplicates
+        unique: true,
     },
     salt: {
         type: String,
@@ -46,7 +46,8 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-userSchema.statics.matchPassword = async function (email, plainPassword) {
+// ✅ Correct way to define static method
+userSchema.statics.MatchPasswordandGenerateToken = async function (email, plainPassword) {
     const user = await this.findOne({ email });
     if (!user) return false;
 
@@ -54,13 +55,14 @@ userSchema.statics.matchPassword = async function (email, plainPassword) {
         .update(plainPassword)
         .digest("hex");
 
-    if (userProvidedHash === user.password) {
-        const { password, salt, ...safeUser } = user.toObject();
-        return safeUser;
+    if (userProvidedHash !== user.password) {
+        throw new Error("Incorrect password");
     }
 
-    return false;
+    const token = createTokenForUser(user);
+    return token;
 };
 
-const User = mongoose.model("User", userSchema);
+const User = model("User", userSchema);  // ✅ using model()
+
 module.exports = User;

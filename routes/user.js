@@ -2,14 +2,6 @@ const { Router } = require("express");
 const User = require("../models/user");
 const router = Router();
 
-router.get("/signup", (req, res) => {
-    return res.render("signup");
-});
-
-router.get("/signin", (req, res) => {
-    return res.render("signin");
-});
-
 // SIGNUP
 router.post("/signup", async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -17,7 +9,7 @@ router.post("/signup", async (req, res) => {
     try {
         const existingUser = await User.findOne({ email: email.trim().toLowerCase() });
         if (existingUser) {
-            return res.status(400).send("Email already exists.");
+            return res.status(400).json({ error: "Email already exists." });
         }
 
         const user = new User({
@@ -27,11 +19,11 @@ router.post("/signup", async (req, res) => {
         });
 
         await user.save();
-        return res.redirect("/home");
+        return res.status(201).json({ message: "User created successfully." });
 
     } catch (err) {
         console.error("Signup error:", err);
-        return res.status(500).send("Error creating user.");
+        return res.status(500).json({ error: "Error creating user." });
     }
 });
 
@@ -40,18 +32,25 @@ router.post("/signin", async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await User.matchPassword(email.trim().toLowerCase(), password);
+        const token = await User.MatchPasswordandGenerateToken(email.trim().toLowerCase(), password);
 
-        if (user) {
-            return res.redirect("/home");
-        } else {
-            return res.status(401).send("Invalid email or password.");
-        }
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+        });
+
+        return res.status(200).json({ message: "Login successful", token });
 
     } catch (err) {
-        console.error("Signin error:", err.message);
-        return res.status(500).send("Error logging in.");
+        return res.status(401).json({ error: "Invalid email or password." });
     }
+});
+
+// LOGOUT
+router.get("/logout", (req, res) => {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logged out successfully." });
 });
 
 module.exports = router;
