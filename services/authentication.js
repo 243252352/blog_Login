@@ -1,5 +1,4 @@
-const JWT = require('jsonwebtoken');
-
+const JWT = require("jsonwebtoken");
 const secret = "$uperMan@143";
 
 function createTokenForUser(user) {
@@ -9,7 +8,6 @@ function createTokenForUser(user) {
         profileImageURL: user.profileImageURL,
         role: user.role,
     };
-
     return JWT.sign(payload, secret, { expiresIn: "7d" });
 }
 
