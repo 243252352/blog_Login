@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -9,11 +10,6 @@ const blogRouter = require("./routes/blog");
 const app = express();
 const PORT = 3000;
 
-// MongoDB Connect
-mongoose.connect("mongodb://localhost:27017/blogy")
-    .then(() => console.log("MongoDB connected"))
-    .catch(err => console.error(" MongoDB connection error:", err));
-
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -24,12 +20,26 @@ app.use(checkForAuthenticationCookie("token"));
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
 
-// Root
+// Root Route
 app.get("/", (req, res) => {
     return res.status(200).json({ message: "Welcome to Blogy API!" });
 });
 
-// Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
+// ✅ Start server only after DB connects
+async function startServer() {
+    try {
+        
+        await mongoose.connect(process.env.MONGODB_URL);
+        console.log("✅ MongoDB connected");
+
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running at http://localhost:${PORT}`);
+        });
+
+    } catch (err) {
+        console.error("❌ MongoDB connection failed:", err);
+        process.exit(1); // Exit with failure
+    }
+}
+
+startServer();

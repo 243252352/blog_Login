@@ -1,12 +1,13 @@
 const JWT = require("jsonwebtoken");
-const secret = "$uperMan@143";
+const secret = process.env.JWT_SECRET;  // hardcoded mat rakho
+
 
 function createTokenForUser(user) {
     const payload = {
-        _id: user._id,
-        email: user.email,
-        profileImageURL: user.profileImageURL,
-        role: user.role,
+      _id: user._id.toString() ,
+        // email: user.email,
+        // profileImageURL: user.profileImageURL,
+        // role: user.role,
     };
     return JWT.sign(payload, secret, { expiresIn: "7d" });
 }
