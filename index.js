@@ -8,7 +8,7 @@ const userRouter = require("./routes/user");
 const blogRouter = require("./routes/blog");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.port;
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
