@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const { checkForAuthenticationCookie } = require("./middleware/authentication");
-
+const adminRouter = require("./routes/admin"); // 👈
 const userRouter = require("./routes/user");
 const blogRouter = require("./routes/blog");
 
@@ -16,6 +16,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
+app.use("/admin", adminRouter); // 👈 mount admin routes
+
 app.use("/user", userRouter);
 app.use("/blog", checkForAuthenticationCookie("token"), blogRouter);
 
