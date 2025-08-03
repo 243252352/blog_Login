@@ -1,19 +1,17 @@
-const JWT = require("jsonwebtoken");
-const secret = process.env.JWT_SECRET;  // hardcoded mat rakho
-
+const jwt = require("jsonwebtoken");
 
 function createTokenForUser(user) {
     const payload = {
-      _id: user._id.toString() ,
+        _id: user._id
     };
-    return JWT.sign(payload, secret, { expiresIn: "7d" });
+
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "7d"
+    });
 }
 
 function validateToken(token) {
-    return JWT.verify(token, secret);
+    return jwt.verify(token, process.env.JWT_SECRET);
 }
 
-module.exports = {
-    createTokenForUser,
-    validateToken,
-};
+module.exports = { createTokenForUser, validateToken };

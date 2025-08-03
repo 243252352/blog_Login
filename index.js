@@ -14,11 +14,11 @@ const PORT = process.env.port;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(checkForAuthenticationCookie("token"));
+
 
 // Routes
 app.use("/user", userRouter);
-app.use("/blog", blogRouter);
+app.use("/blog", checkForAuthenticationCookie("token"),blogRouter);
 
 // Root Route
 app.get("/", (req, res) => {
@@ -37,7 +37,7 @@ async function startServer() {
         });
 
     } catch (err) {
-        console.error("❌ MongoDB connection failed:", err);
+        console.error( {err : err.message});
         process.exit(1); // Exit with failure
     }
 }
