@@ -8,17 +8,16 @@ const userRouter = require("./routes/user");
 const blogRouter = require("./routes/blog");
 
 const app = express();
-const PORT = process.env.port;
+const PORT = process.env.PORT; // ✅ Capitalized
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
-
 // Routes
 app.use("/user", userRouter);
-app.use("/blog", checkForAuthenticationCookie("token"),blogRouter);
+app.use("/blog", checkForAuthenticationCookie("token"), blogRouter);
 
 // Root Route
 app.get("/", (req, res) => {
@@ -28,7 +27,6 @@ app.get("/", (req, res) => {
 // ✅ Start server only after DB connects
 async function startServer() {
     try {
-        
         await mongoose.connect(process.env.MONGODB_URL);
         console.log("✅ MongoDB connected");
 
@@ -37,7 +35,7 @@ async function startServer() {
         });
 
     } catch (err) {
-        console.error( {err : err.message});
+        console.error({ err: err.message });
         process.exit(1); // Exit with failure
     }
 }
