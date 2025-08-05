@@ -21,10 +21,20 @@ async function signup(req, res) {
 
       await sendMail(
         email,
-        "OTP for Blog App Signup",
-        `<p>Your OTP is: <b>${generatedOtp}</b>. It expires in 5 minutes.</p>`
+        "Your OTP for Blog App Signup",
+        `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
+          <h2 style="color: #4CAF50;">Verify Your Email</h2>
+          <p>Hello ${fullName || "there"},</p>
+          <p>Use the OTP below to complete your signup on <strong>Blog App</strong>:</p>
+          <p style="font-size: 18px; font-weight: bold;">${generatedOtp}</p>
+          <p>This OTP is valid for <strong>5 minutes</strong>.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <br />
+          <p>— Blog App Team</p>
+        </div>
+        `
       );
-
 
       return res.status(200).json({ message: "OTP sent to your email" });
     }
@@ -47,7 +57,15 @@ async function signup(req, res) {
     await sendMail(
       email,
       "Welcome to the Blog App 🎉",
-      `<h2>Hi ${fullName},</h2><p>Welcome to our Blog App! We're excited to have you on board.</p>`
+      `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #4CAF50;">Hi ${fullName},</h2>
+        <p>Welcome to <strong>Blog App</strong>! We're thrilled to have you here.</p>
+        <p>Start creating and sharing your thoughts with the world.</p>
+        <br />
+        <p>Happy blogging!<br />— The Blog App Team</p>
+      </div>
+      `
     );
 
     res.status(201).json({
@@ -87,8 +105,19 @@ const signin = async (req, res) => {
 
     await sendMail(
       email,
-      "OTP for Blog App Signin",
-      `<p>Your OTP is: <b>${generatedOtp}</b>. It expires in 5 minutes.</p>`
+      "Your OTP for Blog App Login",
+      `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
+        <h2 style="color: #4CAF50;">Verify Your Login</h2>
+        <p>Hello ${user.fullName || "there"},</p>
+        <p>Use the OTP below to log in to your <strong>Blog App</strong> account:</p>
+        <p style="font-size: 18px; font-weight: bold;">${generatedOtp}</p>
+        <p>This OTP is valid for <strong>5 minutes</strong>.</p>
+        <p>If you didn’t try to log in, please ignore this email.</p>
+        <br />
+        <p>— Blog App Team</p>
+      </div>
+      `
     );
 
     return res.status(200).json({ message: "OTP sent to your email" });
@@ -97,7 +126,7 @@ const signin = async (req, res) => {
   const validOtp = await Otp.findOne({ email, otp });
   if (!validOtp) return res.status(400).json({ error: "Invalid OTP" });
 
-  await Otp.deleteMany({ email });
+  await Otp.deleteMany({ email }); // OTP cleanup
 
   const token = createTokenForUser(user);
   const userObj = user.toObject();
@@ -106,8 +135,16 @@ const signin = async (req, res) => {
 
   await sendMail(
     email,
-    "Welcome to the Blog App 🎉",
-    `<h2>Hi ${user.fullName},</h2><p>Welcome to our Blog App! We're excited to have you on board.</p>`
+    "Welcome Back to Blog App ✨",
+    `
+    <div style="font-family: Arial, sans-serif; padding: 20px;">
+      <h2 style="color: #4CAF50;">Hi ${user.fullName},</h2>
+      <p>Welcome back to <strong>Blog App</strong>!</p>
+      <p>We’re glad to see you again. Ready to continue your blogging journey?</p>
+      <br />
+      <p>Happy blogging!<br />— The Blog App Team</p>
+    </div>
+    `
   );
 
   res.json({ token, user: userObj });
