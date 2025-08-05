@@ -6,6 +6,7 @@ const { checkForAuthenticationCookie } = require("./middleware/authentication");
 const adminRouter = require("./routes/admin"); // 👈
 const userRouter = require("./routes/user");
 const blogRouter = require("./routes/blog");
+const otpRoutes = require("./routes/user");
 
 const app = express();
 const PORT = process.env.PORT; // ✅ Capitalized
@@ -17,7 +18,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/admin", adminRouter); // 👈 mount admin routes
-
+app.use("/otp", otpRoutes);
 app.use("/user", userRouter);
 app.use("/blog", checkForAuthenticationCookie("token"), blogRouter);
 
