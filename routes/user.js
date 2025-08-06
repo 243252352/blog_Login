@@ -1,19 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
-// const { checkForAuthenticationHeader } = require("../middleware/authentication");
-// const userController = require("../controllers/user");
-// const otpController = require("../controllers/otp");
-
-// router.post("/signup", userController.signup);
-// router.post("/signin", userController.signin);
-// router.post("/logout", userController.logout);
-// router.put("/:id", checkForAuthenticationHeader(), userController.updateUser);
-// router.delete("/:id", checkForAuthenticationHeader(), userController.deleteUser);
-// router.post("/send-otp", otpController.sendOtp);
-// router.post("/verify-otp", otpController.verifyOtp);
-// router.post("/resend-otp", otpController.resendOtp);
-// module.exports = router;
-
 const express = require("express");
 const router = express.Router();
 const { checkForAuthenticationHeader } = require("../middleware/authentication");
