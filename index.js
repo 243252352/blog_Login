@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const { checkForAuthenticationCookie } = require("./middleware/authentication");
+const { checkForAuthenticationHeader } = require("./middleware/authentication");
 const adminRouter = require("./routes/admin"); // 👈
 const userRouter = require("./routes/user");
 const blogRouter = require("./routes/blog");
@@ -14,13 +14,13 @@ const PORT = process.env.PORT; // ✅ Capitalized
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // Routes
 app.use("/admin", adminRouter); // 👈 mount admin routes
 app.use("/otp", otpRoutes);
 app.use("/user", userRouter);
-app.use("/blog", checkForAuthenticationCookie("token"), blogRouter);
+app.use("/blog", checkForAuthenticationHeader(), blogRouter);
 
 // Root Route
 app.get("/", (req, res) => {

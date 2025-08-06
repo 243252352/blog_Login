@@ -1,29 +1,31 @@
-const jwt = require("jsonwebtoken");
+const jwt = require("../services/authentication");
 const User = require("../models/user");
 
-function checkForAuthenticationCookie(tokenName) {
-    return async (req, res, next) => {
-        const token = req.cookies[tokenName];
-        if (!token) {
-            return res.status(401).json({ error: "Authentication token missing" });
-        }
+function checkForAuthenticationHeader() {
+  return async function (req, res, next) {
+    const authHeader = req.headers["authorization"];
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findById(decoded._id).select("-password -salt");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Authentication token missing or invalid" });
+    }
 
-            if (!user) {
-                return res.status(401).json({ error: "User not found" });
-            }
+    const token = authHeader.split(" ")[1];
 
-            req.user = user;
-            next();
+    try {
+      const decoded = jwt.validateToken(token);
 
-        } catch (err) {
-            console.error("Auth error:", err.message);
-            return res.status(401).json({ error: "Invalid or expired token" });
-        }
-    };
+      const user = await User.findById(decoded._id).select("-password -salt");
+
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      req.user = user;
+      next();
+    } catch (err) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+  };
 }
 
-module.exports = { checkForAuthenticationCookie };
+module.exports = { checkForAuthenticationHeader };

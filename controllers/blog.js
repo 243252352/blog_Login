@@ -1,5 +1,26 @@
 const Blog = require("../models/blog");
 
+async function getBlogThroughTitle(req, res) {
+    const { title } = req.params;
+
+    if (!title) {
+        return res.status(400).json({ error: "Title is required" });
+    }
+
+    try {
+        const blog = await Blog.find({ title });
+
+        if (blog.length === 0) {
+            return res.status(404).json({ error: "No such blogs found" });
+        }
+
+        return res.status(200).json(blog);
+    } catch (err) {
+        console.error("Get blog by title error:", err);
+        return res.status(500).json({ error: err.message });
+    }
+}
+
 async function createBlog(req, res) {
     const { title, body, coverImageURL } = req.body;
 
@@ -95,4 +116,5 @@ module.exports = {
     getAllBlogs,
     updateBlog,
     deleteBlog,
+    getBlogThroughTitle,
 };
