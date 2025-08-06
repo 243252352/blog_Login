@@ -43,7 +43,7 @@ blog-app/
 - **JWT (jsonwebtoken)** – For secure authentication
 - **Nodemailer** – For sending OTPs and notifications
 - **Express-validator** – For backend input validation
-- 
+
 
 ---
 
