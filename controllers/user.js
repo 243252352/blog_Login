@@ -3,26 +3,30 @@ const User = require("../models/user");
 const { createTokenForUser } = require("../services/authentication");
 const { sendMail } = require("../services/mailer");
 const Otp = require("../models/otp");
+const { validateRequiredFields } = require("../utils/validateRequest");
 
 async function signup(req, res) {
   try {
     const { fullName, email, password, otp } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+    if (!otp) {
+      const validationError = validateRequiredFields(req.body, ["fullName", "email", "password"]);
+      if (validationError) return res.status(400).json(validationError);
+    } else {
+      const validationError = validateRequiredFields(req.body, ["email", "otp"]);
+      if (validationError) return res.status(400).json(validationError);
     }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: "Email already exists" });
 
     if (!otp) {
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-      await Otp.deleteMany({ email }); // clean up previous OTPs
+      await Otp.deleteMany({ email });
       await Otp.create({ email, otp: generatedOtp });
 
-      await sendMail(
-        email,
-        "Your OTP for Blog App Signup",
-        `
+      await sendMail(email, "Your OTP for Blog App Signup", `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
           <h2 style="color: #4CAF50;">Verify Your Email</h2>
           <p>Hello ${fullName || "there"},</p>
@@ -33,8 +37,7 @@ async function signup(req, res) {
           <br />
           <p>— Blog App Team</p>
         </div>
-        `
-      );
+      `);
 
       return res.status(200).json({ message: "OTP sent to your email" });
     }
@@ -42,22 +45,17 @@ async function signup(req, res) {
     const validOtp = await Otp.findOne({ email, otp });
     if (!validOtp) return res.status(400).json({ error: "Invalid OTP" });
 
-    await Otp.deleteMany({ email }); // OTP cleanup
+    await Otp.deleteMany({ email });
 
     const salt = crypto.randomBytes(16).toString("hex");
-    const hashedPassword = crypto
-      .pbkdf2Sync(password, salt, 1000, 64, "sha512")
-      .toString("hex");
+    const hashedPassword = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
 
     const newUser = new User({ fullName, email, password: hashedPassword, salt });
     await newUser.save();
 
     const token = createTokenForUser(newUser);
 
-    await sendMail(
-      email,
-      "Welcome to the Blog App 🎉",
-      `
+    await sendMail(email, "Welcome to the Blog App 🎉", `
       <div style="font-family: Arial, sans-serif; padding: 20px;">
         <h2 style="color: #4CAF50;">Hi ${fullName},</h2>
         <p>Welcome to <strong>Blog App</strong>! We're thrilled to have you here.</p>
@@ -65,8 +63,7 @@ async function signup(req, res) {
         <br />
         <p>Happy blogging!<br />— The Blog App Team</p>
       </div>
-      `
-    );
+    `);
 
     res.status(201).json({
       message: "User created successfully",
@@ -83,72 +80,74 @@ async function signup(req, res) {
   }
 }
 
-const signin = async (req, res) => {
-  const { email, password, otp } = req.body;
+async function signin(req, res) {
+  try {
+    const { email, password, otp } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ error: "User not found" });
+    if (!otp) {
+      const validationError = validateRequiredFields(req.body, ["email", "password"]);
+      if (validationError) return res.status(400).json(validationError);
+    } else {
+      const validationError = validateRequiredFields(req.body, ["email", "otp"]);
+      if (validationError) return res.status(400).json(validationError);
+    }
 
-  const hashedInputPassword = crypto
-    .pbkdf2Sync(password, user.salt, 1000, 64, "sha512")
-    .toString("hex");
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-  if (user.password !== hashedInputPassword) {
-    return res.status(401).json({ error: "Invalid email or password" });
-  }
+    const hashedInputPassword = crypto.pbkdf2Sync(password, user.salt, 1000, 64, "sha512").toString("hex");
+    if (user.password !== hashedInputPassword) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
-  if (!otp) {
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    if (!otp) {
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      await Otp.deleteMany({ email });
+      await Otp.create({ email, otp: generatedOtp });
+
+      await sendMail(email, "Your OTP for Blog App Login", `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
+          <h2 style="color: #4CAF50;">Verify Your Login</h2>
+          <p>Hello ${user.fullName || "there"},</p>
+          <p>Use the OTP below to log in to your <strong>Blog App</strong> account:</p>
+          <p style="font-size: 18px; font-weight: bold;">${generatedOtp}</p>
+          <p>This OTP is valid for <strong>5 minutes</strong>.</p>
+          <p>If you didn’t try to log in, please ignore this email.</p>
+          <br />
+          <p>— Blog App Team</p>
+        </div>
+      `);
+
+      return res.status(200).json({ message: "OTP sent to your email" });
+    }
+
+    const validOtp = await Otp.findOne({ email, otp });
+    if (!validOtp) return res.status(400).json({ error: "Invalid OTP" });
 
     await Otp.deleteMany({ email });
-    await Otp.create({ email, otp: generatedOtp });
 
-    await sendMail(
-      email,
-      "Your OTP for Blog App Login",
-      `
-      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
-        <h2 style="color: #4CAF50;">Verify Your Login</h2>
-        <p>Hello ${user.fullName || "there"},</p>
-        <p>Use the OTP below to log in to your <strong>Blog App</strong> account:</p>
-        <p style="font-size: 18px; font-weight: bold;">${generatedOtp}</p>
-        <p>This OTP is valid for <strong>5 minutes</strong>.</p>
-        <p>If you didn’t try to log in, please ignore this email.</p>
+    const token = createTokenForUser(user);
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.salt;
+
+    await sendMail(email, "Welcome Back to Blog App ✨", `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #4CAF50;">Hi ${user.fullName},</h2>
+        <p>Welcome back to <strong>Blog App</strong>!</p>
+        <p>We’re glad to see you again. Ready to continue your blogging journey?</p>
         <br />
-        <p>— Blog App Team</p>
+        <p>Happy blogging!<br />— The Blog App Team</p>
       </div>
-      `
-    );
+    `);
 
-    return res.status(200).json({ message: "OTP sent to your email" });
+    res.json({ token, user: userObj });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const validOtp = await Otp.findOne({ email, otp });
-  if (!validOtp) return res.status(400).json({ error: "Invalid OTP" });
-
-  await Otp.deleteMany({ email }); // OTP cleanup
-
-  const token = createTokenForUser(user);
-  const userObj = user.toObject();
-  delete userObj.password;
-  delete userObj.salt;
-
-  await sendMail(
-    email,
-    "Welcome Back to Blog App ✨",
-    `
-    <div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2 style="color: #4CAF50;">Hi ${user.fullName},</h2>
-      <p>Welcome back to <strong>Blog App</strong>!</p>
-      <p>We’re glad to see you again. Ready to continue your blogging journey?</p>
-      <br />
-      <p>Happy blogging!<br />— The Blog App Team</p>
-    </div>
-    `
-  );
-
-  res.json({ token, user: userObj });
-};
+}
 
 async function logout(req, res) {
   try {
@@ -161,12 +160,14 @@ async function logout(req, res) {
 async function updateUser(req, res) {
   try {
     const { id } = req.params;
+    const { fullName, email } = req.body;
+
+    const validationError = validateRequiredFields(req.body, ["fullName", "email"]);
+    if (validationError) return res.status(400).json(validationError);
 
     if (req.user._id.toString() !== id) {
       return res.status(403).json({ error: "Unauthorized" });
     }
-
-    const { fullName, email } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
@@ -186,6 +187,8 @@ async function updateUser(req, res) {
 async function deleteUser(req, res) {
   try {
     const { id } = req.params;
+
+    if (!id) return res.status(400).json({ error: "User ID is required" });
 
     if (req.user._id.toString() !== id) {
       return res.status(403).json({ error: "Unauthorized" });
