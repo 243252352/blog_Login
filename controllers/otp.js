@@ -4,6 +4,7 @@ const User = require("../models/user");
 const { createTokenForUser } = require("../services/authentication");
 const { sendMail } = require("../services/mailer");
 const otpGenerator = require('otp-generator')
+const getEmailVerificationTemplate = require('../templates/emailVerificationTemplate');
 
 
 function generateOTP() {
@@ -20,21 +21,8 @@ exports.sendOtp = async (req, res) => {
 
   await Otp.create({ email, otp });
 
-  await sendMail(
-    email,
-    "Verify Your Email – Blog App OTP",
-    `
-      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
-        <h2 style="color: #4CAF50;">👋 Welcome to Blog App!</h2>
-        <p>Thank you for signing up. To verify your email address, please use the OTP below:</p>
-        <p style="font-size: 18px; font-weight: bold; color: #000;">Your OTP: <span style="color: #4CAF50;">${otp}</span></p>
-        <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
-        <p>If you didn’t request this, you can safely ignore this email.</p>
-        <br />
-        <p>Happy blogging!<br />— The Blog App Team</p>
-      </div>
-    `
-  );
+ const htmlContent = getEmailVerificationTemplate(otp);
+await sendMail(user.email, "Verify Your Email – Blog App OTP", htmlContent);
 
   res.json({ message: "OTP sent to email" });
 };

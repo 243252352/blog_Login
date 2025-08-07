@@ -30,9 +30,6 @@ async function signup(req, res) {
   }
 
   const salt = crypto.randomBytes(16).toString("hex");
-  // const hashedPassword = crypto
-  //   .pbkdf2Sync(password, salt, 1000, 64, "sha512")
-  //   .toString("hex");
 
   const hashedPassword = hashPassword(password, salt);
 

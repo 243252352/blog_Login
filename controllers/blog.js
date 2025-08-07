@@ -31,6 +31,8 @@ async function createBlog(req, res) {
   }
 }
 
+
+//To many if else and  cant be good for a scalable app like if there are 15 function then it will cause the problem
 async function updateBlog(req, res) {
   const blogId = req.params.id;
   const { title, body, coverImageURL } = req.body;
