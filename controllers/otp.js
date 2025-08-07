@@ -21,7 +21,7 @@ exports.sendOtp = async (req, res) => {
 
   await Otp.create({ email, otp });
 
- const htmlContent = getEmailVerificationTemplate(otp);
+ const htmlContent = getEmailVerificationTemplate(email,otp);
 await sendMail(email, "Verify Your Email – Blog App OTP", htmlContent);
 
   res.json({ message: "OTP sent to email" });
@@ -40,7 +40,7 @@ exports.verifyOtp = async (req, res) => {
     user = await User.create({
       email,
       fullName: "User",
-      password: crypto.randomBytes(10).toString("hex") // random password
+      password: crypto.randomBytes(10).toString("hex") 
     });
   }
 

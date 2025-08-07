@@ -1,10 +1,11 @@
 const crypto = require("crypto");
-const {User ,hashPassword}= require("../models/user");
+const { User, hashPassword } = require("../models/user");
 const Otp = require("../models/otp");
 const { createTokenForUser } = require("../services/authentication");
 const { sendMail } = require("../services/mailer");
 const { validationResult } = require("express-validator");
 const { sendOtp, verifyOtp } = require("./otp");
+const { constrainedMemory } = require("process");
 
 // ======================= SIGNUP =======================
 async function signup(req, res) {
@@ -13,41 +14,31 @@ async function signup(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { fullName, email, password, otp } = req.body;
+  const { fullName, email, password } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res.status(400).json({ error: "Email already registered" });
   }
 
-  if (!otp) {
-    return await sendOtp(req,res);
-  }
-//to remove with otp verify
-  const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
-  if (!existingOtp || existingOtp.otp !== otp) {
-    return res.status(400).json({ error: "Invalid or expired OTP" });
-  }
-
   const salt = crypto.randomBytes(16).toString("hex");
-
   const hashedPassword = hashPassword(password, salt);
 
-  const user = await User.create({ fullName, email, salt, password: hashedPassword });
-  await Otp.deleteMany({ email });
+  const user = await User.create({
+    fullName,
+    email,
+    salt,
+    password: hashedPassword,
+    verified: false,
+  });
 
-  const token = createTokenForUser(user);
+  await sendOtp(req, res); // Send OTP after saving
 
   return res.status(201).json({
-    message: "User created successfully",
-    token,
-    user: {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email
-    }
+    message: "Signup successful. Please verify your email using the OTP sent.",
   });
 }
+
 
 // ======================= SIGNIN =======================
 async function signin(req, res) {
@@ -62,9 +53,9 @@ async function signin(req, res) {
   if (!user) return res.status(404).json({ error: "User not found" });
 
   if (!otp) {
-    return await sendOtp(req,res);
+    return await sendOtp(req, res);
   }
-//to remove with verify
+  //to remove with verify
   const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
   if (!existingOtp || existingOtp.otp !== otp) {
     return res.status(400).json({ error: "Invalid or expired OTP" });
@@ -80,8 +71,8 @@ async function signin(req, res) {
       user: {
         _id: user._id,
         fullName: user.fullName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (err) {
     return res.status(401).json({ error: err.message });
