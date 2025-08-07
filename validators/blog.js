@@ -1,13 +1,19 @@
 const { body } = require("express-validator");
 
-exports.validateBlogCreation = [
-  body("title").notEmpty().withMessage("Title is required"),
-  body("body").notEmpty().withMessage("Body is required"),
-  body("coverImageURL").optional().isURL().withMessage("Cover image must be a valid URL"),
+const blogValidation = [
+    body("title").notEmpty().withMessage("Title is required"),
+    body("body").notEmpty().withMessage("Body content is required"),
+    body("coverImageURL").optional().isURL().withMessage("Cover image must be a valid URL"),
 ];
 
-exports.validateBlogUpdate = [
-  body("title").optional().notEmpty().withMessage("Title cannot be empty"),
-  body("body").optional().notEmpty().withMessage("Body cannot be empty"),
-  body("coverImageURL").optional().isURL().withMessage("Cover image must be a valid URL"),
+// Blog update validation (fields are optional but must be valid if present)
+const updateValidation = [
+    body("title").optional().notEmpty().withMessage("Title cannot be empty"),
+    body("body").optional().notEmpty().withMessage("Body cannot be empty"),
+    body("coverImageURL").optional().isURL().withMessage("Cover image must be a valid URL"),
 ];
+
+module.exports = {
+    blogValidation,
+    updateValidation,
+};

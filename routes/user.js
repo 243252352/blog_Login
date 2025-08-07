@@ -10,8 +10,8 @@ router.post("/signin", validateSignin, userController.signin);
 router.post("/logout", userController.logout);
 router.put("/:id", checkForAuthenticationHeader(), userController.updateUser);
 router.delete("/:id", checkForAuthenticationHeader(), userController.deleteUser);
-router.post("/send-otp", otpController.sendOtp);
-router.post("/verify-otp", otpController.verifyOtp);
-router.post("/resend-otp", otpController.resendOtp);
+// router.post("/send-otp", otpController.sendOtp);
+// router.post("/verify-otp", otpController.verifyOtp);
+// router.post("/resend-otp", otpController.resendOtp);
 
 module.exports = router;

@@ -31,4 +31,10 @@ userSchema.statics.matchPasswordAndGenerateToken = async function (email, plainP
     return token;
 };
 
-module.exports = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+
+// Export both User and hashPassword
+module.exports = {
+    User,
+    hashPassword
+};

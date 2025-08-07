@@ -1,9 +1,10 @@
 const crypto = require("crypto");
-const User = require("../models/user");
+const {User ,hashPassword}= require("../models/user");
 const Otp = require("../models/otp");
 const { createTokenForUser } = require("../services/authentication");
 const { sendMail } = require("../services/mailer");
 const { validationResult } = require("express-validator");
+const { sendOtp, verifyOtp } = require("./otp");
 
 // ======================= SIGNUP =======================
 async function signup(req, res) {
@@ -20,26 +21,7 @@ async function signup(req, res) {
   }
 
   if (!otp) {
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    await Otp.deleteMany({ email });
-    await Otp.create({ email, otp: generatedOtp });
-
-    await sendMail(
-      email,
-      "Verify Your Email – Blog App OTP",
-      `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
-          <h2 style="color: #4CAF50;">👋 Welcome to Blog App!</h2>
-          <p>Thank you for signing up. To verify your email address, please use the OTP below:</p>
-          <p style="font-size: 18px; font-weight: bold; color: #000;">Your OTP: <span style="color: #4CAF50;">${generatedOtp}</span></p>
-          <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
-          <br />
-          <p>Happy blogging!<br />— The Blog App Team</p>
-        </div>
-      `
-    );
-
-    return res.status(200).json({ message: "OTP sent to email. Please verify to complete signup." });
+    return await sendOtp(req,res);
   }
 
   const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
@@ -48,9 +30,11 @@ async function signup(req, res) {
   }
 
   const salt = crypto.randomBytes(16).toString("hex");
-  const hashedPassword = crypto
-    .pbkdf2Sync(password, salt, 1000, 64, "sha512")
-    .toString("hex");
+  // const hashedPassword = crypto
+  //   .pbkdf2Sync(password, salt, 1000, 64, "sha512")
+  //   .toString("hex");
+
+  const hashedPassword = hashPassword(password, salt);
 
   const user = await User.create({ fullName, email, salt, password: hashedPassword });
   await Otp.deleteMany({ email });
@@ -81,24 +65,7 @@ async function signin(req, res) {
   if (!user) return res.status(404).json({ error: "User not found" });
 
   if (!otp) {
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    await Otp.deleteMany({ email });
-    await Otp.create({ email, otp: generatedOtp });
-
-    await sendMail(
-      email,
-      "Your Sign-in OTP – Blog App",
-      `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
-          <h2 style="color: #4CAF50;">🔐 Login Verification</h2>
-          <p>To continue signing in, use the OTP below:</p>
-          <p style="font-size: 18px; font-weight: bold; color: #000;">Your OTP: <span style="color: #4CAF50;">${generatedOtp}</span></p>
-          <p>This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
-        </div>
-      `
-    );
-
-    return res.status(200).json({ message: "OTP sent to email. Please verify to complete signin." });
+    return await sendOtp(req,res);
   }
 
   const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
