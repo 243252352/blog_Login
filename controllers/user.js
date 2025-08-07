@@ -23,7 +23,7 @@ async function signup(req, res) {
   if (!otp) {
     return await sendOtp(req,res);
   }
-
+//to remove with otp verify
   const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
   if (!existingOtp || existingOtp.otp !== otp) {
     return res.status(400).json({ error: "Invalid or expired OTP" });
@@ -64,7 +64,7 @@ async function signin(req, res) {
   if (!otp) {
     return await sendOtp(req,res);
   }
-
+//to remove with verify
   const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
   if (!existingOtp || existingOtp.otp !== otp) {
     return res.status(400).json({ error: "Invalid or expired OTP" });

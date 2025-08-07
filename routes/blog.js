@@ -13,7 +13,7 @@ const validate = require("../middleware/validate");
 const {
     blogValidation,
     updateValidation,
-} = require("../validations/blog");
+} = require("../validators/blog");
 const router = Router();
 
 

@@ -17,12 +17,12 @@ exports.sendOtp = async (req, res) => {
   if (!email) return res.status(400).json({ error: "Email is required" });
 
   const otp = generateOTP();
-  await Otp.deleteMany({ email }); // remove previous OTPs
+  await Otp.deleteMany({ email }); 
 
   await Otp.create({ email, otp });
 
  const htmlContent = getEmailVerificationTemplate(otp);
-await sendMail(user.email, "Verify Your Email – Blog App OTP", htmlContent);
+await sendMail(email, "Verify Your Email – Blog App OTP", htmlContent);
 
   res.json({ message: "OTP sent to email" });
 };
