@@ -1,11 +1,13 @@
-
 const Blog = require("../models/blog");
 const { validationResult } = require("express-validator");
 const { sendMail } = require("../services/mailer");
-const {getBlogCreatedTemplate}=require("../templates/emailVerificationTemplate");
+const {
+  getBlogCreatedTemplate,
+} = require("../templates/emailVerificationTemplate");
 async function createBlog(req, res) {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
 
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
@@ -19,12 +21,11 @@ async function createBlog(req, res) {
       createdBy: req.user._id,
     });
 
-   await sendMail(
-  req.user.email,
-  "✅ New Blog Created",
-  getBlogCreatedTemplate(req.user.fullName, title)
-);
-
+    await sendMail(
+      req.user.email,
+      "✅ New Blog Created",
+      getBlogCreatedTemplate(req.user.fullName, title)
+    );
 
     return res.status(201).json(blog);
   } catch (err) {
@@ -32,10 +33,9 @@ async function createBlog(req, res) {
   }
 }
 
-
 async function updateBlog(req, res) {
   const blogId = req.params.id;
-  const updateFields = ['title', 'body', 'coverImageURL']; // easily scalable
+  const updateFields = ["title", "body", "coverImageURL"]; // easily scalable
   const updates = {};
 
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
