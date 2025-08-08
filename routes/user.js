@@ -4,7 +4,6 @@ const {
   checkForAuthenticationHeader,
 } = require("../middleware/authentication");
 const userController = require("../controllers/user");
-const otpController = require("../controllers/otp");
 const { validateSignup, validateSignin } = require("../validators/user");
 
 router.post("/signup", validateSignup, userController.signup);

@@ -6,12 +6,14 @@ const {
   deleteBlog,
   getBlogThroughTitle,
 } = require("../controllers/blog");
+
 const {
   checkForAuthenticationHeader,
 } = require("../middleware/authentication");
-const { body } = require("express-validator");
+
 const validate = require("../middleware/validate");
 const { blogValidation, updateValidation } = require("../validators/blog");
+
 const router = Router();
 
 router.post(
@@ -21,7 +23,9 @@ router.post(
   validate,
   createBlog
 );
+
 router.get("/", getAllBlogs);
+
 router.put(
   "/:id",
   checkForAuthenticationHeader(),
@@ -29,7 +33,9 @@ router.put(
   validate,
   updateBlog
 );
+
 router.delete("/:id", checkForAuthenticationHeader(), deleteBlog);
+
 router.get("/title/:title", getBlogThroughTitle);
 
 module.exports = router;

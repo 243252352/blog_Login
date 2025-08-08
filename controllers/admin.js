@@ -1,6 +1,7 @@
 const Admin = require("../models/admin");
 const { createTokenForUser } = require("../services/authentication");
-const { hashPassword, generateSalt } = require("../models/user");
+const { hashPassword} = require("../models/user");
+const {generateSalt} = require("../utils/generateSalt")
 
 exports.signup = async (req, res) => {
   const { fullName, email, password, handle } = req.body;

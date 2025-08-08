@@ -17,9 +17,6 @@ const userSchema = new mongoose.Schema({
 function hashPassword(password, salt) {
   return crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
 }
-function generateSalt() {
-  return crypto.randomBytes(16).toString("hex");
-}
 
 // Add method to generate JWT
 userSchema.statics.matchPasswordAndGenerateToken = async function (
@@ -47,5 +44,4 @@ const User = mongoose.model("User", userSchema);
 module.exports = {
   User,
   hashPassword,
-  generateSalt,
 };

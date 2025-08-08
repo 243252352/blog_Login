@@ -1,11 +1,11 @@
 const crypto = require("crypto");
 const { User, hashPassword } = require("../models/user");
 const Otp = require("../models/otp");
-const { createTokenForUser } = require("../services/authentication");
-const { sendMail } = require("../services/mailer");
 const { validationResult } = require("express-validator");
-const { sendOtp, verifyOtp } = require("./otp");
-const { constrainedMemory } = require("process");
+const { sendOtp } = require("./otp");
+const { throwIfEmailExists } = require("../utils/dbChecks");
+const generateSalt=require("../utils/generateSalt");
+const { generate } = require("otp-generator");
 
 // ======================= SIGNUP =======================
 async function signup(req, res) {
@@ -16,15 +16,12 @@ async function signup(req, res) {
 
   const { fullName, email, password } = req.body;
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res.status(400).json({ error: "Email already registered" });
-  }
+  if (await throwIfEmailExists(User, email, res)) return;
 
-  const salt = crypto.randomBytes(16).toString("hex");
+  const salt = generateSalt();
   const hashedPassword = hashPassword(password, salt);
 
-  const user = await User.create({
+  await User.create({
     fullName,
     email,
     salt,
@@ -32,11 +29,8 @@ async function signup(req, res) {
     verified: false,
   });
 
-  await sendOtp(req, res); // Send OTP after saving
-
-  return res.status(201).json({
-    message: "Signup successful. Please verify your email using the OTP sent.",
-  });
+  req.body.onlyOtp = true;
+  return sendOtp(req, res);
 }
 
 // ======================= SIGNIN =======================
@@ -52,12 +46,8 @@ async function signin(req, res) {
   if (!user) return res.status(404).json({ error: "User not found" });
 
   if (!otp) {
-    return await sendOtp(req, res);
-  }
-  //to remove with verify
-  const existingOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
-  if (!existingOtp || existingOtp.otp !== otp) {
-    return res.status(400).json({ error: "Invalid or expired OTP" });
+    req.body.onlyOtp = true;
+    return sendOtp(req, res);
   }
 
   try {
