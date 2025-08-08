@@ -1,12 +1,13 @@
-const crypto = require("crypto");
 const { User, hashPassword } = require("../models/user");
 const Otp = require("../models/otp");
 const { validationResult } = require("express-validator");
 const { sendOtp } = require("./otp");
 const { throwIfEmailExists } = require("../utils/dbChecks");
-const generateSalt=require("../utils/generateSalt");
-const { generate } = require("otp-generator");
-
+const generateSalt = require("../utils/generateSalt");
+const {
+  getWelcomeTemplate,
+} = require("../templates/emailVerificationTemplate");
+const sendMail = require("../services/mailer");
 // ======================= SIGNUP =======================
 async function signup(req, res) {
   const errors = validationResult(req);
@@ -54,6 +55,10 @@ async function signin(req, res) {
     const token = await User.matchPasswordAndGenerateToken(email, password);
     await Otp.deleteMany({ email });
 
+    const subject = "Welcome Back!";
+    const html = getWelcomeTemplate(email);
+    await sendMail(email, subject, html);
+    
     return res.status(200).json({
       message: "Signin successful",
       token,

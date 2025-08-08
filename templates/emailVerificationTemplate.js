@@ -12,12 +12,12 @@ function getEmailVerificationTemplate(email, otp) {
   `;
 }
 
-function getWelcomeBackTemplate(email) {
+function getWelcomeTemplate(email) {
   return `
     <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f8; color: #333;">
       <h2 style="color: #4CAF50;">👋 Welcome back to Blog App!</h2>
       <p>Hi <strong>${email}</strong>,</p>
-      <p>We're glad to see you again! You’ve successfully signed in to your account.</p>
+      <p>We're glad to see you ! You’ve successfully signed in to your account.</p>
       <p>If this was you, no further action is needed.</p>
       <p style="margin-top: 20px;">🔒 <strong>Security Tip:</strong> If you didn't sign in just now, please reset your password immediately or contact our support team.</p>
       <br />
@@ -29,4 +29,4 @@ function getWelcomeBackTemplate(email) {
   `;
 }
 
-module.exports = { getWelcomeBackTemplate, getEmailVerificationTemplate };
+module.exports = { getWelcomeTemplate, getEmailVerificationTemplate };
