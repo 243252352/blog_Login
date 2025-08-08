@@ -39,7 +39,6 @@ async function signup(req, res) {
   });
 }
 
-
 // ======================= SIGNIN =======================
 async function signin(req, res) {
   const errors = validationResult(req);

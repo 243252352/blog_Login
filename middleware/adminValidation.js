@@ -40,7 +40,9 @@ const validateRequestBody = (req, res, next) => {
 const checkChangeHandleRequest = (req, res, next) => {
   const { adminId, newHandle } = req.body;
   if (!adminId || !newHandle) {
-    return res.status(400).json({ error: "adminId and newHandle are required" });
+    return res
+      .status(400)
+      .json({ error: "adminId and newHandle are required" });
   }
   next();
 };
