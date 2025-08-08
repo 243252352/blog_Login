@@ -8,7 +8,7 @@ const ServerListening = async (app) => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("POrt Can't be Served", error.message);
+    console.error("Port Can't be Served", error.message);
     process.exit(1);
   }
 };
