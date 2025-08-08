@@ -1,12 +1,11 @@
+
 const Blog = require("../models/blog");
 const { validationResult } = require("express-validator");
 const { sendMail } = require("../services/mailer");
-const { getBlogIfOwner, extractUpdates } = require("../utils/blogUtils");
 
 async function createBlog(req, res) {
   const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
@@ -32,30 +31,33 @@ async function createBlog(req, res) {
   }
 }
 
+
+//To many if else and  cant be good for a scalable app like if there are 15 function then it will cause the problem
 async function updateBlog(req, res) {
+  const blogId = req.params.id;
+  const { title, body, coverImageURL } = req.body;
+
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-  try {
-    const blog = await getBlogIfOwner(req.params.id, req.user._id);
+  const blog = await Blog.findById(blogId);
+  if (!blog) return res.status(404).json({ error: "Blog not found" });
 
-    const updates = extractUpdates(
-      req.body,
-      ["title", "body", "coverImageURL"],
-      blog
-    );
+  if (blog.createdBy.toString() !== req.user._id.toString())
+    return res.status(403).json({ error: "Not owner of the blog" });
 
-    if (Object.keys(updates).length === 0)
-      return res.status(400).json({ error: "No changes detected" });
+  const noChange =
+    (!title || title === blog.title) &&
+    (!body || body === blog.body) &&
+    (!coverImageURL || coverImageURL === blog.coverImageURL);
 
-    Object.assign(blog, updates);
-    await blog.save();
+  if (noChange) return res.status(400).json({ error: "No changes detected" });
 
-    return res.status(200).json({ message: "Blog updated successfully", blog });
-  } catch (err) {
-    return res
-      .status(err.status || 500)
-      .json({ error: err.message || "Server error" });
-  }
+  if (title) blog.title = title;
+  if (body) blog.body = body;
+  if (coverImageURL) blog.coverImageURL = coverImageURL;
+
+  await blog.save();
+  return res.status(200).json({ message: "Blog updated successfully", blog });
 }
 
 async function getAllBlogs(req, res) {

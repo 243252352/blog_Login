@@ -24,9 +24,10 @@ async function verifyEmail(req, res) {
     user: {
       _id: user._id,
       fullName: user.fullName,
-      email: user.email,
-    },
+      email: user.email
+    }
   });
 }
 
-modulel.export = { verifyEmail };
+
+modulel.export={verifyEmail};
