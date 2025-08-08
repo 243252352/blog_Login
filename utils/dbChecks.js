@@ -1,4 +1,4 @@
-// utils/dbChecks.js
+
 async function throwIfEmailExists(model, email, res) {
   const existing = await model.findOne({ email });
   if (existing) {

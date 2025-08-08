@@ -19,7 +19,6 @@ app.use("/admin", adminRouter);
 app.use("/user", userRouter);
 app.use("/blog", checkForAuthenticationHeader(), blogRouter);
 
-// Root
 app.get("/", (req, res) => {
   return res.status(200).json({ message: "Welcome to Blogy API!" });
 });

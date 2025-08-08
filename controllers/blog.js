@@ -32,31 +32,35 @@ async function createBlog(req, res) {
 }
 
 
-//To many if else and  cant be good for a scalable app like if there are 15 function then it will cause the problem
 async function updateBlog(req, res) {
   const blogId = req.params.id;
-  const { title, body, coverImageURL } = req.body;
+  const updateFields = ['title', 'body', 'coverImageURL']; // easily scalable
+  const updates = {};
 
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
   const blog = await Blog.findById(blogId);
   if (!blog) return res.status(404).json({ error: "Blog not found" });
 
-  if (blog.createdBy.toString() !== req.user._id.toString())
+  if (blog.createdBy.toString() !== req.user._id.toString()) {
     return res.status(403).json({ error: "Not owner of the blog" });
+  }
 
-  const noChange =
-    (!title || title === blog.title) &&
-    (!body || body === blog.body) &&
-    (!coverImageURL || coverImageURL === blog.coverImageURL);
+  // Collect only changed fields
+  updateFields.forEach((field) => {
+    if (req.body[field] && req.body[field] !== blog[field]) {
+      updates[field] = req.body[field];
+    }
+  });
 
-  if (noChange) return res.status(400).json({ error: "No changes detected" });
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "No changes detected" });
+  }
 
-  if (title) blog.title = title;
-  if (body) blog.body = body;
-  if (coverImageURL) blog.coverImageURL = coverImageURL;
-
+  // Apply updates
+  Object.assign(blog, updates);
   await blog.save();
+
   return res.status(200).json({ message: "Blog updated successfully", blog });
 }
 
