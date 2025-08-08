@@ -29,4 +29,22 @@ function getWelcomeTemplate(email) {
   `;
 }
 
-module.exports = { getWelcomeTemplate, getEmailVerificationTemplate };
+function getBlogCreatedTemplate(fullName, title) {
+  return `
+    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f8; color: #333;">
+      <h2 style="color: #4CAF50;">✅ Blog Created Successfully!</h2>
+      <p>Hi <strong>${fullName}</strong>,</p>
+      <p>Your blog titled <strong>"${title}"</strong> has been successfully created and is now live. 🚀</p>
+      <p>Thank you for contributing your voice to our community.</p>
+      <br />
+      <p>You can view or manage your blog anytime from your dashboard.</p>
+      <p>Keep writing and inspiring others! ✍️</p>
+      <br />
+      <p>— The Blog App Team</p>
+    </div>
+  `;
+}
+
+
+
+module.exports = {getBlogCreatedTemplate, getWelcomeTemplate, getEmailVerificationTemplate };

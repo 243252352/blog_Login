@@ -2,7 +2,7 @@
 const Blog = require("../models/blog");
 const { validationResult } = require("express-validator");
 const { sendMail } = require("../services/mailer");
-
+const {getBlogCreatedTemplate}=require("../templates/emailVerificationTemplate");
 async function createBlog(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -19,11 +19,12 @@ async function createBlog(req, res) {
       createdBy: req.user._id,
     });
 
-    await sendMail(
-      req.user.email,
-      "New Blog Created",
-      `<h3>Hello ${req.user.fullName},</h3><p>Your blog titled <strong>${title}</strong> has been created successfully.</p>`
-    );
+   await sendMail(
+  req.user.email,
+  "✅ New Blog Created",
+  getBlogCreatedTemplate(req.user.fullName, title)
+);
+
 
     return res.status(201).json(blog);
   } catch (err) {
